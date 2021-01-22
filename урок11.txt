@@ -1,0 +1,83 @@
+Практическое задание по теме “Оптимизация запросов”
+1. Создайте таблицу logs типа Archive. Пусть при каждом создании записи в таблицах users, catalogs и products в таблицу logs помещается время и дата создания записи, название таблицы, идентификатор первичного ключа и содержимое поля name.
+
+Решение в cmd: 
+
+mysql> use shop;
+Database changed
+mysql> DROP TABLE IF EXISTS logs;
+Query OK, 0 rows affected, 1 warning (0.03 sec)
+
+mysql> CREATE TABLE logs (
+    -> created_at DATETIME NOT NULL,
+    -> table_name VARCHAR(45) NOT NULL,
+    -> str_id BIGINT(20) NOT NULL,
+    -> name_value VARCHAR(45) NOT NULL
+    -> ) ENGINE = ARCHIVE;
+Query OK, 0 rows affected, 1 warning (0.05 sec)
+
+mysql> DROP TRIGGER IF EXISTS watchlog_users;
+Query OK, 0 rows affected, 1 warning (0.08 sec)
+
+mysql> delimiter //
+mysql> CREATE TRIGGER watchlog_users AFTER INSERT ON users
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO logs (created_at, table_name, str_id, name_value)
+    -> VALUES (NOW(), 'users', NEW.id, NEW.name);
+    -> END //
+Query OK, 0 rows affected (0.75 sec)
+
+mysql> delimiter ;
+mysql> DROP TRIGGER IF EXISTS watchlog_catalogs;
+Query OK, 0 rows affected, 1 warning (0.03 sec)
+
+mysql> delimiter //
+mysql> CREATE TRIGGER watchlog_catalogs AFTER INSERT ON catalogs
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO logs (created_at, table_name, str_id, name_value)
+    -> VALUES (NOW(), 'catalogs', NEW.id, NEW.name);
+    -> END //
+Query OK, 0 rows affected (0.02 sec)
+
+mysql> delimiter ;
+mysql> delimiter //
+mysql> CREATE TRIGGER watchlog_products AFTER INSERT ON products
+    -> FOR EACH ROW
+    -> BEGIN
+    -> INSERT INTO logs (created_at, table_name, str_id, name_value)
+    -> VALUES (NOW(), 'products', NEW.id, NEW.name);
+    -> END //
+Query OK, 0 rows affected (0.05 sec)
+
+mysql> delimiter ;
+mysql>
+
+
+
+Практическое задание по теме “NoSQL”
+1. В базе данных Redis подберите коллекцию для подсчета посещений с определенных IP-адресов.
+
+
+SADD ip '127.0.0.1' '127.0.0.2' '127.0.0.3'
+SADD ip '127.0.0.1' 
+SMEMBERS ip
+SCARD ip
+
+2. При помощи базы данных Redis решите задачу поиска имени пользователя по электронному адресу и наоборот, поиск электронного адреса пользователя по его имени.
+
+set anna@mail.ru anna 
+set anna anna@mail.ru
+get anna@mail.ru 
+get anna
+
+3. Организуйте хранение категорий и товарных позиций учебной базы данных shop в СУБД MongoDB.
+
+
+shop.products.insert({
+    name: "Intel Core i3-8100",
+    description: "Процессор для настольных персональных компьютеров, основанных на платформе Intel.",
+    price: 7890.00,
+    catalog: "Процессоры"
+}) 
